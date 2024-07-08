@@ -1,4 +1,3 @@
-# tamcheck
 # Module for quick data collection of Quarterly TAM Checks
 
 ## Checks currently include
