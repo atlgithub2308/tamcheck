@@ -14,9 +14,9 @@ PE Server Tuning Status - AL
 
 PE Server Module List - TL
 
-PE Server Node Count
+PE Server Node Count - BI
 
-PE Server Node Count not expired
+PE Server Node Count not expired - BI
 
 PE Server Inactive Node Count
 
