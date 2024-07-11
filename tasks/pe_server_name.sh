@@ -27,20 +27,29 @@
 # Learn more at: https://puppet.com/docs/bolt/0.x/writing_tasks.html#ariaid-title11
 #
 
-# Create output files
-output_file="pe_server_name_$(date +%F).txt"
-# html_output_file="tse-$(date +%F).html"
-create_date="$(date +%d\/%m\/%Y)"
+if [ -d ${PT_output_dir} ]
+then
+    if [ ! -d "${PT_output_dir}/tamcheck_data" ]
+    then
+        mkdir -p "${PT_output_dir}/tamcheck_data"
+        output_dir="${PT_output_dir}"
+        output_dir+="/"
+        output_dir+="tamcheck_data"
+    else
+        output_dir="${PT_output_dir}"
+        output_dir+="/"
+        output_dir+="tamcheck_data"
+    fi
+else
+    echo "No ${PT_output_dir} directory exists to dump files"
+    exit
+fi
 
-# Create a temporary directory
-# temp_dir=$(mktemp -d)
-# input_file="$temp_dir/cert-expire.txt"
+# Ensure pathing is set to be able to run puppet commands
+[[ $PATH =~ "/opt/puppetlabs/bin" ]] || export PATH="/opt/puppetlabs/bin:${PATH}"
 
+# File variable to use in redirections of command outputs to files
+output_file="${output_dir}/pe_server_name.out"
 
-printf "$create_date" > "$output_file"
-printf "\n" >> "$output_file"
-printf "Collecting PE Server Name \n"
-printf "PE Server Name = " >> "$output_file"
+printf "" > "$output_file"
 puppet config print | awk '/^server =/ {print $3}' >> "$output_file"
-
-

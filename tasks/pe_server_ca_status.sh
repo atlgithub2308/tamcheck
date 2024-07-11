@@ -26,3 +26,34 @@
 #   }
 # Learn more at: https://puppet.com/docs/bolt/0.x/writing_tasks.html#ariaid-title11
 #
+
+if [ -d ${PT_output_dir} ]
+then
+    if [ ! -d "${PT_output_dir}/tamcheck_data" ]
+    then
+        mkdir -p "${PT_output_dir}/tamcheck_data"
+        output_dir="${PT_output_dir}"
+        output_dir+="/"
+        output_dir+="tamcheck_data"
+    else
+        output_dir="${PT_output_dir}"
+        output_dir+="/"
+        output_dir+="tamcheck_data"
+    fi
+else
+    echo "No ${PT_output_dir} directory exists to dump files"
+    exit
+fi
+
+# Ensure pathing is set to be able to run puppet commands
+[[ $PATH =~ "/opt/puppetlabs/bin" ]] || export PATH="/opt/puppetlabs/bin:${PATH}"
+
+# File variable to use in redirections of command outputs to files
+output_file="${output_dir}/pe_server_ca_status.out"
+input_file="${output_dir}/pe_server_ca_status.in"
+
+# Puppet Server Cert Expiry
+printf "Collecting PE Server CA Certificate Status \n"
+/opt/puppetlabs/puppet/bin/openssl x509 -in "$(/opt/puppetlabs/bin/puppet config print hostcert)" --enddate --noout > "$input_file"
+awk '{print "Puppet Enterprise Server Certificate valid until: " substr($1,10,3) " " $2 " " $4}' "$input_file" > "$output_file"
+rm -f "$input_file"
