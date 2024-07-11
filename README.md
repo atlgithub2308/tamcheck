@@ -31,7 +31,7 @@ PE Server hardware info
 
 ## Here is what we are going to do as agreed in our meeting 27/06/24
 
-These checks are to be moved from a single script at https://github.com/coffeeales/tamcheck
+These checks are to be moved from a single script at https://github.com/coffeeales/tamcheck/files/tamcheck.sh
 and made into individual tasks that can be run via a plan
 
 Ideally this is then able to be run via Bolt or on the PE Server via the console
