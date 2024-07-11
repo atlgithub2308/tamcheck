@@ -1,0 +1,16 @@
+{
+  "puppet_task_version": 1,
+  "supports_noop": false,
+  "description": "This task collects Puppet server node count",
+  "input_method": "environment",
+  "parameters": {
+    "output_dir": {
+       "description": "Directory to place collected data",
+       "type": "String",
+       "default": "/var/tmp"
+    }
+  },
+  "implementations": [
+    { "name": "pe_server_node_count.sh" }
+  ]
+}
