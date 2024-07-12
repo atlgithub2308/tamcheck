@@ -6,7 +6,8 @@
   "parameters": {
     "output_dir": {
        "description": "Directory to place collected data",
-       "type": "String"
+       "type": "String",
+       "default": "/var/tmp"
     }
   },
   "implementations": [
