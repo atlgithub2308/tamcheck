@@ -27,7 +27,6 @@
 # Learn more at: https://puppet.com/docs/bolt/0.x/writing_tasks.html#ariaid-title11
 #
 
-echo "output_dir ${PT_output_dir} "
 if [ -d ${PT_output_dir} ]
 then
     if [ ! -d "${PT_output_dir}/tamcheck_data" ]
@@ -53,3 +52,5 @@ fi
 output_file="${output_dir}/pe_server_infrastructure_status.out"
 
 puppet infrastructure status | tee $output_file
+
+echo " output_file is found here: ${output_file} "

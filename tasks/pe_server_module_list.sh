@@ -52,3 +52,5 @@ fi
 output_file="${output_dir}/pe_server_module_list.out"
 
 puppet module list | tee $output_file
+
+echo " output_file is found here: ${output_file} "
