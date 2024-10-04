@@ -2,7 +2,7 @@
 
 # Puppet Task: pe_server_module_list
 # This script lists the installed Puppet modules, writes the output to a file,
-# and displays the version numbers in color when shown in the terminal.
+# converts the output to JSON, and saves both files in the specified directory.
 
 # Check if the output directory exists, create it if necessary
 if [ -d "${PT_output_dir}" ]; then
@@ -24,9 +24,23 @@ output_file="${output_dir}/pe_server_module_list.out"
 # Generate the clean output file without color codes
 puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' > "$output_file"
 
+# Convert the output to JSON format
+json_output_file="${output_dir}/pe_server_module_list.json"
+
+# Read the output file, convert it to JSON (simple key-value pair for each module)
+awk '
+BEGIN { print "{" }
+{
+    if (NR > 1) printf ",\n"
+    printf "  \"%s\": \"%s\"", $1, $2
+}
+END { print "\n}" }
+' "$output_file" > "$json_output_file"
+
 # Output the location of the result file
 echo ""
 echo "Output file is found here: ${output_file}"
+echo "JSON output file is found here: ${json_output_file}"
 echo ""
 
 # Display the output with version numbers in the terminal
