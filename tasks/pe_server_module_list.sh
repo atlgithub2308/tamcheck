@@ -1,48 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 
-# Puppet Task Name: pe_server_infrastructure_status
-#
-# This is where you put the shell code for your task.
-#
-# You can write Puppet tasks in any language you want and it's easy to
-# adapt an existing Python, PowerShell, Ruby, etc. script. Learn more at:
-# https://puppet.com/docs/bolt/0.x/writing_tasks.html
-#
-# Puppet tasks make it easy for you to enable others to use your script. Tasks
-# describe what it does, explains parameters and which are required or optional,
-# as well as validates parameter type. For examples, if parameter "instances"
-# must be an integer and the optional "datacenter" parameter must be one of
-# portland, sydney, belfast or singapore then the .json file
-# would include:
-#   "parameters": {
-#     "instances": {
-#       "description": "Number of instances to create",
-#       "type": "Integer"
-#     },
-#     "datacenter": {
-#       "description": "Datacenter where instances will be created",
-#       "type": "Enum[portland, sydney, belfast, singapore]"
-#     }
-#   }
-# Learn more at: https://puppet.com/docs/bolt/0.x/writing_tasks.html#ariaid-title11
-#
+# Puppet Task: pe_server_module_list
+# This script lists the installed Puppet modules, writes the output to a file,
+# and displays the version numbers in color when shown in the terminal.
 
-if [ -d ${PT_output_dir} ]
-then
-    if [ ! -d "${PT_output_dir}/tamcheck_data" ]
-    then
+# Check if the output directory exists, create it if necessary
+if [ -d "${PT_output_dir}" ]; then
+    if [ ! -d "${PT_output_dir}/tamcheck_data" ]; then
         mkdir -p "${PT_output_dir}/tamcheck_data"
-        output_dir="${PT_output_dir}"
-        output_dir+="/"
-        output_dir+="tamcheck_data"
-    else
-        output_dir="${PT_output_dir}"
-        output_dir+="/"
-        output_dir+="tamcheck_data"
     fi
+    output_dir="${PT_output_dir}/tamcheck_data"
 else
     echo "No ${PT_output_dir} directory exists to dump files"
-    exit
+    exit 1
 fi
 
 # Ensure pathing is set to be able to run puppet commands
@@ -51,6 +21,14 @@ fi
 # File variable to use in redirections of command outputs to files
 output_file="${output_dir}/pe_server_module_list.out"
 
-puppet module list | tee $output_file
+# Generate the clean output file without color codes
+puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' > "$output_file"
 
-echo " output_file is found here: ${output_file} "
+# Output the location of the result file
+echo ""
+echo "Output file is found here: ${output_file}"
+echo ""
+
+# Display the output with version numbers in the terminal
+echo "Displaying module output:"
+cat "$output_file" | perl -pe 's/\((v[^\)]+)\)/"\e[34m($1)\e[0m"/g'
