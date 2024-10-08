@@ -2,7 +2,7 @@
 
 # Puppet Task Name: pe_server_infrastructure_status
 # This script checks the Puppet Enterprise server infrastructure status,
-# writes the output to a file, and also converts it to a JSON format.
+# writes the output to a file, filters out unwanted lines, and converts the output to JSON format.
 
 # Check if the output directory exists, create it if necessary
 if [ -d "${PT_output_dir}" ]; then
@@ -21,8 +21,8 @@ fi
 # File variable to use in redirections of command outputs to files
 output_file="${output_dir}/pe_server_infrastructure_status.out"
 
-# Generate the infrastructure status output and save to file
-puppet infrastructure status | tee "$output_file"
+# Run the puppet infrastructure status command and filter out the unwanted line
+puppet infrastructure status | grep -v "Notice: Contacting services for status information..." | tee "$output_file"
 
 # Convert the output to JSON format
 json_output_file="${output_dir}/pe_server_infrastructure_status.json"
@@ -41,3 +41,4 @@ END { print "\n]}" }
 # Output the location of both the result files
 echo "Output file is found here: ${output_file}"
 echo "JSON output file is found here: ${json_output_file}"
+

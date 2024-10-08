@@ -21,8 +21,8 @@ fi
 # File variable to use in redirections of command outputs to files
 output_file="${output_dir}/pe_server_module_list.out"
 
-# Generate the clean output file without color codes and exclude '---' lines
-puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' | grep -v '^---' > "$output_file"
+# Generate the clean output file without color codes and exclude unwanted lines (---, ├──, etc.)
+puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' | grep -vE '^---|^├──|^└──' > "$output_file"
 
 # Convert the output to JSON format
 json_output_file="${output_dir}/pe_server_module_list.json"
