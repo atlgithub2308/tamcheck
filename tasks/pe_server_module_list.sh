@@ -27,12 +27,18 @@ puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' > "$outpu
 # Convert the output to JSON format
 json_output_file="${output_dir}/pe_server_module_list.json"
 
-# Read the output file, convert it to JSON (simple key-value pair for each module)
+# Read the output file, convert it to JSON with module names and version numbers
 awk '
 BEGIN { print "{" }
 {
+    if ($1 ~ /^\//) {
+        next  # Skip lines that start with '/' (these are directories)
+    }
     if (NR > 1) printf ",\n"
-    printf "  \"%s\": \"%s\"", $1, $2
+    match($0, /\((v[^\)]+)\)/, ver)  # Match the version number
+    module_name = $1
+    module_version = ver[1]
+    printf "  \"%s\": \"%s\"", module_name, module_version
 }
 END { print "\n}" }
 ' "$output_file" > "$json_output_file"
