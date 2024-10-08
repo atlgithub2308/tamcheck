@@ -21,8 +21,8 @@ fi
 # File variable to use in redirections of command outputs to files
 output_file="${output_dir}/pe_server_module_list.out"
 
-# Generate the clean output file without color codes and filter out directory lines
-puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' | grep -vE '^/|^ ' > "$output_file"
+# Generate the clean output file without color codes and exclude unwanted lines
+puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' | grep -vE '^/|^ ' | sed 's/├── //g' | sed 's/└── //g' > "$output_file"
 
 # Convert the output to JSON format
 json_output_file="${output_dir}/pe_server_module_list.json"
@@ -32,9 +32,9 @@ awk '
 BEGIN { print "{" }
 {
     match($0, /\((v[^\)]+)\)/, ver)  # Match the version number
-    module_name = $1
+    module_name = substr($0, 1, index($0, " ")-1)  # Extract the module name before the version
     module_version = ver[1]
-    if (module_version != "") {
+    if (module_version != "" && module_name != "") {
         if (NR > 1) printf ",\n"
         printf "  \"%s\": \"%s\"", module_name, module_version
     }
