@@ -27,16 +27,17 @@ puppet module list --color=false | perl -pe 's/\e\[[0-9;]*[a-zA-Z]//g' | grep -v
 # Convert the output to JSON format
 json_output_file="${output_dir}/pe_server_module_list.json"
 
-# Read the output file, extract module names and versions, and convert to JSON
+# Read the output file, extract module names and versions, and handle "invalid" flag
 awk '
 BEGIN { print "{" }
 {
     match($0, /\((v[^\)]+)\)/, ver)  # Match the version number
-    module_name = substr($0, 1, index($0, " ")-1)  # Extract the module name before the version
+    module_name = substr($0, 1, index($0, " ")-1)  # Extract the module name
     module_version = ver[1]
     if (module_version != "" && module_name != "") {
+        invalid = ($0 ~ /invalid/) ? ", \"status\": \"invalid\"" : ""  # Check for "invalid"
         if (NR > 1) printf ",\n"
-        printf "  \"%s\": \"%s\"", module_name, module_version
+        printf "  \"%s\": {\"version\": \"%s\"%s}", module_name, module_version, invalid
     }
 }
 END { print "\n}" }
