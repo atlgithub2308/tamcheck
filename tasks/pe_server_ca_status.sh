@@ -55,5 +55,9 @@ input_file="${output_dir}/pe_server_ca_status.in"
 # Puppet Server Cert Expiry
 printf "Collecting PE Server CA Certificate Status \n"
 /opt/puppetlabs/puppet/bin/openssl x509 -in "$(/opt/puppetlabs/bin/puppet config print hostcert)" --enddate --noout > "$input_file"
-awk '{print "Puppet Enterprise Server Certificate valid until: " substr($1,10,3) " " $2 " " $4}' "$input_file" > "$output_file"
+awk '{print "Puppet Enterprise Server Certificate valid until: " substr($1,10,3) " " $2 " " $4}' "$input_file" | tee "$output_file"
 rm -f "$input_file"
+
+echo ""
+echo "Output_file is found here: ${output_file} "
+echo ""
