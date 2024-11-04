@@ -18,12 +18,11 @@ fi
 [[ $PATH =~ "/opt/puppetlabs/bin" ]] || export PATH="/opt/puppetlabs/bin:${PATH}"
 
 # Define output files
-output_file="${output_dir}/pe_server_node_detail.out"
-json_output_file="${output_dir}/pe_server_node_detail.json"
+output_file="${output_dir}/pe_node_detail.out"
+json_output_file="${output_dir}/pe_node_detail.json"
 
-# Initialize output file and JSON structure
+# Initialize output file
 echo "" > "$output_file"
-json_content="{\"node_counts\": {}}"
 
 # Function to get node counts
 get_node_count() {
@@ -41,9 +40,11 @@ get_node_count() {
     echo "$description: $count" | tee -a "$output_file"
 
     # Prepare JSON entry
-    json_entry="\"$description\": $count"
-    json_content=$(echo "$json_content" | jq --arg key "$description" --argjson value "$count" '.node_counts[$key] = $value')
+    echo "\"$description\": $count" >> "$json_output_file.tmp"
 }
+
+# Start JSON format in temp file
+echo "{" > "$json_output_file.tmp"
 
 # Collect data for each query
 get_node_count 'nodes[count(certname)]{}' "PE Server Total Node Count"
@@ -52,8 +53,12 @@ get_node_count 'nodes[count(certname)]{expired is null}' "PE Server Node Count (
 get_node_count 'nodes[count(certname)]{node_state = "inactive"}' "PE Server Node Count (Inactive nodes)"
 get_node_count 'nodes[count(certname)]{cached_catalog_status = "used"}' "PE Server Node Count (Nodes using a cached catalog)"
 
-# Write JSON output to file
-echo "$json_content" | jq . > "$json_output_file"
+# Finish JSON structure
+sed '$ s/,$//' "$json_output_file.tmp" > "$json_output_file" # Remove trailing comma
+echo "}" >> "$json_output_file"
+
+# Clean up temp file
+rm "$json_output_file.tmp"
 
 # Check if JSON file was created and populated
 if [ -s "$json_output_file" ]; then
@@ -63,6 +68,7 @@ else
     exit 1
 fi
 
+echo ""
 echo "Output files are located at:"
 echo "Text output: ${output_file}"
 echo "JSON output: ${json_output_file}"
