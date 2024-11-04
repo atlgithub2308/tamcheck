@@ -73,7 +73,8 @@ echo "$json_content" > "$json_output_file"
 if [ -s "$json_output_file" ]; then
     echo "JSON output successfully written to: $json_output_file"
 else
-    echo "Failed to write JSON output."
+    echo "Failed to write JSON output. Check permissions and format."
+    exit 1
 fi
 
 echo ""
