@@ -20,9 +20,8 @@ fi
 output_file="${output_dir}/pe_server_node_detail.out"
 json_output_file="${output_dir}/pe_server_node_detail.json"
 
-# Initialize output file and JSON structure
+# Initialize output file
 echo "" > "$output_file"
-json_output="{\"node_counts\": {}}"
 
 # Function to collect node counts
 get_node_count() {
@@ -37,20 +36,38 @@ get_node_count() {
 
     # Print and log to output file
     echo "$description: $count" | tee -a "$output_file"
-
-    # Update JSON output
-    json_output=$(echo "$json_output" | jq --arg key "$description" --argjson value "$count" '.node_counts[$key] = $value')
+    
+    # Return the description and count for JSON formatting
+    echo "\"$description\": $count"
 }
 
-# Collecting data
-get_node_count 'nodes[count(certname)]{}' "PE Server Total Node Count"
-get_node_count 'nodes[count(certname)]{deactivated is null and expired is null}' "PE Server Node Count (minus de-activated & expired nodes)"
-get_node_count 'nodes[count(certname)]{expired is null}' "PE Server Node Count (Number of Nodes not expired)"
-get_node_count 'nodes[count(certname)]{node_state = "inactive"}' "PE Server Node Count (Inactive nodes)"
-get_node_count 'nodes[count(certname)]{cached_catalog_status = "used"}' "PE Server Node Count (Nodes using a cached catalog)"
+# Collecting data and format for JSON
+json_content="{\"node_counts\": {"
+first_entry=true
 
-# Write JSON output to file
-echo "$json_output" | jq . > "$json_output_file"
+# Collecting counts for each category
+for query_info in 'nodes[count(certname)]{}:PE Server Total Node Count' \
+                  'nodes[count(certname)]{deactivated is null and expired is null}:PE Server Node Count (minus de-activated & expired nodes)' \
+                  'nodes[count(certname)]{expired is null}:PE Server Node Count (Number of Nodes not expired)' \
+                  'nodes[count(certname)]{node_state = "inactive"}:PE Server Node Count (Inactive nodes)' \
+                  'nodes[count(certname)]{cached_catalog_status = "used"}:PE Server Node Count (Nodes using a cached catalog)'; do
+    query=${query_info%%:*}
+    description=${query_info#*:}
+    node_data=$(get_node_count "$query" "$description")
+
+    # Append to JSON content
+    if [ "$first_entry" = true ]; then
+        json_content="$json_content$node_data"
+        first_entry=false
+    else
+        json_content="$json_content, $node_data"
+    fi
+done
+
+json_content="$json_content}}"
+
+# Write JSON content to file
+echo "$json_content" > "$json_output_file"
 
 # Check if JSON file is created and populated
 if [ -s "$json_output_file" ]; then
