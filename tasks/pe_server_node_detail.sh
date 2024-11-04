@@ -2,6 +2,7 @@
 
 # Puppet Task Name: pe_server_node_detail
 
+# Check for output directory
 if [ -d "${PT_output_dir}" ]; then
     # Create output directory if it doesn't exist
     if [ ! -d "${PT_output_dir}/tamcheck_data" ]; then
@@ -20,32 +21,28 @@ fi
 output_file="${output_dir}/pe_server_node_detail.out"
 json_output_file="${output_dir}/pe_server_node_detail.json"
 
-# Initialize output file
+# Initialize output file and JSON structure
 echo "" > "$output_file"
+json_content="{\"node_counts\": {}}"
 
-# Function to collect node counts
+# Collect node counts and construct JSON
 get_node_count() {
     local query="$1"
     local description="$2"
     local count=$(puppet query "$query" | awk '/"count":/ {print $2}')
 
-    # Check if count is empty
-    if [ -z "$count" ]; then
-        count=0  # Set count to 0 if empty
-    fi
+    # Default count to 0 if the command fails to return a valid number
+    [ -z "$count" ] && count=0
 
-    # Print and log to output file
+    # Print and log to output file and console
     echo "$description: $count" | tee -a "$output_file"
-    
-    # Return the description and count for JSON formatting
+
+    # Return key-value pair for JSON
     echo "\"$description\": $count"
 }
 
-# Collecting data and format for JSON
-json_content="{\"node_counts\": {"
-first_entry=true
-
-# Collecting counts for each category
+# Collect data for each query
+json_entries=()
 for query_info in 'nodes[count(certname)]{}:PE Server Total Node Count' \
                   'nodes[count(certname)]{deactivated is null and expired is null}:PE Server Node Count (minus de-activated & expired nodes)' \
                   'nodes[count(certname)]{expired is null}:PE Server Node Count (Number of Nodes not expired)' \
@@ -53,23 +50,16 @@ for query_info in 'nodes[count(certname)]{}:PE Server Total Node Count' \
                   'nodes[count(certname)]{cached_catalog_status = "used"}:PE Server Node Count (Nodes using a cached catalog)'; do
     query=${query_info%%:*}
     description=${query_info#*:}
-    node_data=$(get_node_count "$query" "$description")
-
-    # Append to JSON content
-    if [ "$first_entry" = true ]; then
-        json_content="$json_content$node_data"
-        first_entry=false
-    else
-        json_content="$json_content, $node_data"
-    fi
+    json_entries+=($(get_node_count "$query" "$description"))
 done
 
-json_content="$json_content}}"
+# Combine JSON entries
+json_content="${json_content}$(IFS=, ; echo "${json_entries[*]}")}}"
 
-# Write JSON content to file
+# Write JSON output to file
 echo "$json_content" > "$json_output_file"
 
-# Check if JSON file is created and populated
+# Verify the JSON file was created and populated
 if [ -s "$json_output_file" ]; then
     echo "JSON output successfully written to: $json_output_file"
 else
