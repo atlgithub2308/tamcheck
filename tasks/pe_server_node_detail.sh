@@ -42,27 +42,15 @@ get_node_count() {
 
     # Prepare JSON entry
     json_entry="\"$description\": $count"
-    echo "$json_entry"
+    json_content=$(echo "$json_content" | jq --arg key "$description" --argjson value "$count" '.node_counts[$key] = $value')
 }
 
-# Collect data for each query and format the JSON entries
-json_entries=""
-for query_info in 'nodes[count(certname)]{}:PE Server Total Node Count' \
-                  'nodes[count(certname)]{deactivated is null and expired is null}:PE Server Node Count (minus de-activated & expired nodes)' \
-                  'nodes[count(certname)]{expired is null}:PE Server Node Count (Number of Nodes not expired)' \
-                  'nodes[count(certname)]{node_state = "inactive"}:PE Server Node Count (Inactive nodes)' \
-                  'nodes[count(certname)]{cached_catalog_status = "used"}:PE Server Node Count (Nodes using a cached catalog)'; do
-    query=${query_info%%:*}
-    description=${query_info#*:}
-    json_entry=$(get_node_count "$query" "$description")
-    
-    # Append to JSON entries
-    json_entries="${json_entries}${json_entry}, "
-done
-
-# Remove trailing comma and space, and close the JSON structure
-json_entries=$(echo "$json_entries" | sed 's/, $//')  # Remove trailing comma and space
-json_content="${json_content}${json_entries}}"
+# Collect data for each query
+get_node_count 'nodes[count(certname)]{}' "PE Server Total Node Count"
+get_node_count 'nodes[count(certname)]{deactivated is null and expired is null}' "PE Server Node Count (minus de-activated & expired nodes)"
+get_node_count 'nodes[count(certname)]{expired is null}' "PE Server Node Count (Number of Nodes not expired)"
+get_node_count 'nodes[count(certname)]{node_state = "inactive"}' "PE Server Node Count (Inactive nodes)"
+get_node_count 'nodes[count(certname)]{cached_catalog_status = "used"}' "PE Server Node Count (Nodes using a cached catalog)"
 
 # Write JSON output to file
 echo "$json_content" > "$json_output_file"
@@ -75,7 +63,12 @@ else
     exit 1
 fi
 
+# Display the contents of the output file in the console
 echo ""
+echo "Output from the text file:"
+cat "$output_file"
+echo ""
+
 echo "Output files are located at:"
 echo "Text output: ${output_file}"
 echo "JSON output: ${json_output_file}"
