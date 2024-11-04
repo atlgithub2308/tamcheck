@@ -28,10 +28,7 @@ get_node_count() {
     local query="$1"
     local description="$2"
     local count=$(puppet query "$query" | awk '/"count":/ {print $2}')
-
-    # Debug output to check the raw count
-    echo "Debug: Query: $query | Count: $count" 
-
+    
     # Print and log to output file
     echo -n "$description: " | tee -a $output_file
     echo "$count" | tee -a $output_file
@@ -48,11 +45,7 @@ get_node_count 'nodes[count(certname)]{node_state = "inactive"}' "PE Server Node
 get_node_count 'nodes[count(certname)]{cached_catalog_status = "used"}' "PE Server Node Count (Nodes using a cached catalog)"
 
 # Write JSON output to file
-if [ -n "$json_output" ]; then
-    echo "$json_output" | jq . > "$json_output_file"
-else
-    echo "No data available to write to JSON."
-fi
+echo "$json_output" | jq . > "$json_output_file"
 
 echo ""
 echo "Output files are located at:"
