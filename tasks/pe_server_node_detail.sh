@@ -30,7 +30,7 @@ get_node_count() {
     local query="$1"
     local description="$2"
     local count=$(puppet query "$query" | awk '/"count":/ {print $2}')
-
+    
     # Default count to 0 if the command fails to return a valid number
     [ -z "$count" ] && count=0
 
