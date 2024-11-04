@@ -53,21 +53,15 @@ get_node_count 'nodes[count(certname)]{node_state = "inactive"}' "PE Server Node
 get_node_count 'nodes[count(certname)]{cached_catalog_status = "used"}' "PE Server Node Count (Nodes using a cached catalog)"
 
 # Write JSON output to file
-echo "$json_content" > "$json_output_file"
+echo "$json_content" | jq . > "$json_output_file"
 
-# Verify the JSON file was created and populated
+# Check if JSON file was created and populated
 if [ -s "$json_output_file" ]; then
     echo "JSON output successfully written to: $json_output_file"
 else
-    echo "Failed to write JSON output. Check permissions and format."
+    echo "Failed to write JSON output. Check permissions and query results."
     exit 1
 fi
-
-# Display the contents of the output file in the console
-echo ""
-echo "Output from the text file:"
-cat "$output_file"
-echo ""
 
 echo "Output files are located at:"
 echo "Text output: ${output_file}"
