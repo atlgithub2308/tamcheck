@@ -18,8 +18,8 @@ fi
 [[ $PATH =~ "/opt/puppetlabs/bin" ]] || export PATH="/opt/puppetlabs/bin:${PATH}"
 
 # Define output files
-output_file="${output_dir}/pe_node_detail.out"
-json_output_file="${output_dir}/pe_node_detail.json"
+output_file="${output_dir}/pe_server_node_detail.out"
+json_output_file="${output_dir}/pe_server_node_detail.json"
 
 # Initialize output file
 echo "" > "$output_file"
