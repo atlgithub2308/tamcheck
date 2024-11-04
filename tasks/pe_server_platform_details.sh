@@ -54,7 +54,7 @@
 #   }
 # Learn more at: https://puppet.com/docs/bolt/0.x/writing_tasks.html#ariaid-title11
 #
-if [ -d ${T_output_dir} ]
+if [ -d ${PT_output_dir} ]
 then
     if [ ! -d "${PT_output_dir}/tamcheck_data" ]
     then
@@ -76,7 +76,7 @@ fi
 [[ $PATH =~ "/opt/puppetlabs/bin" ]] || export PATH="/opt/puppetlabs/bin:${PATH}"
 
 # File variable to use in redirections of command outputs to files
-output_file_pe_server_platform="${output_dir}/pe_node_server_platform.out"
+output_file="${output_dir}/pe_server_platform_detail.out"
 
 fqdn=`puppet facts networking.fqdn --render-as s | awk -F\" {'print $4}'`
 ip=`puppet facts networking.ip --render-as s | awk -F\" '{print $4}'`
@@ -86,10 +86,14 @@ vcpu=`puppet facts processors.count --render-as s | awk -F\> '{print $2}' | sed 
 cpu_model=`puppet facts processors.models --render-as s | awk -F\" '{print $4}'`
 memory=`puppet facts memory.system.total --render-as s | awk -F\" '{print $4}'`
 
-echo "PE Server FQDN: ${fqdn}" > $output_file_pe_server_platform
-echo "PE Server ip address: ${ip}" >> $output_file_pe_server_platform
-echo "PE Server operating system: ${os_name}" >> $output_file_pe_server_platform
-echo "PE Server operating system version: ${os_ver}" >> $output_file_pe_server_platform
-echo "PE Server vCPU count: ${vcpu}" >> $output_file_pe_server_platform
-echo "PE Server CPU type: ${cpu_model}" >> $output_file_pe_server_platform
-echo "PE Server Memory: ${memory}" >> $output_file_pe_server_platform
+echo "PE Server FQDN: ${fqdn}" | tee $output_file
+echo "PE Server ip address: ${ip}" | tee -a $output_file
+echo "PE Server operating system: ${os_name}" | tee -a $output_file
+echo "PE Server operating system version: ${os_ver}" | tee -a $output_file
+echo "PE Server vCPU count: ${vcpu}" | tee -a $output_file
+echo "PE Server CPU type: ${cpu_model}" | tee -a $output_file
+echo "PE Server Memory: ${memory}" | tee -a $output_file
+
+echo ""
+echo "Output_file is found here: ${output_file} "
+echo ""
