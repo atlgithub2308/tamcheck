@@ -25,24 +25,28 @@ json_output_file="${output_dir}/pe_server_node_detail.json"
 echo "" > "$output_file"
 json_content="{\"node_counts\": {}}"
 
-# Collect node counts and construct JSON
+# Function to get node counts
 get_node_count() {
     local query="$1"
     local description="$2"
-    local count=$(puppet query "$query" | awk '/"count":/ {print $2}')
+    local count
+
+    # Execute the query and extract the count
+    count=$(puppet query "$query" | awk '/"count":/ {print $2}')
     
     # Default count to 0 if the command fails to return a valid number
     [ -z "$count" ] && count=0
 
-    # Print and log to output file and console
+    # Print and log to output file
     echo "$description: $count" | tee -a "$output_file"
 
-    # Return key-value pair for JSON
-    echo "\"$description\": $count"
+    # Prepare JSON entry
+    json_entry="\"$description\": $count"
+    echo "$json_entry"
 }
 
-# Collect data for each query
-json_entries=()
+# Collect data for each query and format the JSON entries
+json_entries=""
 for query_info in 'nodes[count(certname)]{}:PE Server Total Node Count' \
                   'nodes[count(certname)]{deactivated is null and expired is null}:PE Server Node Count (minus de-activated & expired nodes)' \
                   'nodes[count(certname)]{expired is null}:PE Server Node Count (Number of Nodes not expired)' \
@@ -50,11 +54,15 @@ for query_info in 'nodes[count(certname)]{}:PE Server Total Node Count' \
                   'nodes[count(certname)]{cached_catalog_status = "used"}:PE Server Node Count (Nodes using a cached catalog)'; do
     query=${query_info%%:*}
     description=${query_info#*:}
-    json_entries+=($(get_node_count "$query" "$description"))
+    json_entry=$(get_node_count "$query" "$description")
+    
+    # Append to JSON entries
+    json_entries="${json_entries}${json_entry}, "
 done
 
-# Combine JSON entries
-json_content="${json_content}$(IFS=, ; echo "${json_entries[*]}")}}"
+# Remove trailing comma and space, and close the JSON structure
+json_entries=$(echo "$json_entries" | sed 's/, $//')  # Remove trailing comma and space
+json_content="${json_content}${json_entries}}"
 
 # Write JSON output to file
 echo "$json_content" > "$json_output_file"
