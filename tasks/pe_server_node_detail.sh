@@ -28,7 +28,10 @@ get_node_count() {
     local query="$1"
     local description="$2"
     local count=$(puppet query "$query" | awk '/"count":/ {print $2}')
-    
+
+    # Debug output to check the raw count
+    echo "Debug: Query: $query | Count: $count" 
+
     # Print and log to output file
     echo -n "$description: " | tee -a $output_file
     echo "$count" | tee -a $output_file
@@ -37,6 +40,7 @@ get_node_count() {
     json_output=$(echo "$json_output" | jq --arg key "$description" --argjson value "$count" '.node_counts[$key] = $value')
 }
 
+# Execute node count queries
 get_node_count 'nodes[count(certname)]{}' "PE Server Total Node Count"
 get_node_count 'nodes[count(certname)]{deactivated is null and expired is null}' "PE Server Node Count (minus de-activated & expired nodes)"
 get_node_count 'nodes[count(certname)]{expired is null}' "PE Server Node Count (Number of Nodes not expired)"
@@ -44,7 +48,11 @@ get_node_count 'nodes[count(certname)]{node_state = "inactive"}' "PE Server Node
 get_node_count 'nodes[count(certname)]{cached_catalog_status = "used"}' "PE Server Node Count (Nodes using a cached catalog)"
 
 # Write JSON output to file
-echo "$json_output" | jq . > "$json_output_file"
+if [ -n "$json_output" ]; then
+    echo "$json_output" | jq . > "$json_output_file"
+else
+    echo "No data available to write to JSON."
+fi
 
 echo ""
 echo "Output files are located at:"
