@@ -1,54 +1,51 @@
 #!/bin/sh
 
 # Puppet Task Name: pe_server_tuning_status
-#
-# This is where you put the shell code for your task.
-#
-# You can write Puppet tasks in any language you want and it's easy to
-# adapt an existing Python, PowerShell, Ruby, etc. script. Learn more at:
-# https://puppet.com/docs/bolt/0.x/writing_tasks.html
-#
-# Puppet tasks make it easy for you to enable others to use your script. Tasks
-# describe what it does, explains parameters and which are required or optional,
-# as well as validates parameter type. For examples, if parameter "instances"
-# must be an integer and the optional "datacenter" parameter must be one of
-# portland, sydney, belfast or singapore then the .json file
-# would include:
-#   "parameters": {
-#     "instances": {
-#       "description": "Number of instances to create",
-#       "type": "Integer"
-#     },
-#     "datacenter": {
-#       "description": "Datacenter where instances will be created",
-#       "type": "Enum[portland, sydney, belfast, singapore]"
-#     }
-#   }
-# Learn more at: https://puppet.com/docs/bolt/0.x/writing_tasks.html#ariaid-title11
-#
 
-if [ -d ${PT_output_dir} ]
-then
-    if [ ! -d "${PT_output_dir}/tamcheck_data" ]
-    then
+# Check for the output directory
+if [ -d "${PT_output_dir}" ]; then
+    # Create output directory if it doesn't exist
+    if [ ! -d "${PT_output_dir}/tamcheck_data" ]; then
         mkdir -p "${PT_output_dir}/tamcheck_data"
-        output_dir="${PT_output_dir}"
-        output_dir+="/"
-        output_dir+="tamcheck_data"
-    else
-        output_dir="${PT_output_dir}"
-        output_dir+="/"
-        output_dir+="tamcheck_data"
     fi
+    output_dir="${PT_output_dir}/tamcheck_data"
 else
     echo "No ${PT_output_dir} directory exists to dump files"
-    exit
+    exit 1
 fi
 
 # Ensure pathing is set to be able to run puppet commands
 [[ $PATH =~ "/opt/puppetlabs/bin" ]] || export PATH="/opt/puppetlabs/bin:${PATH}"
 
-# File variable to use in redirections of command outputs to files
+# Define output files
 output_file="${output_dir}/pe_server_tuning_status.out"
+json_output_file="${output_dir}/pe_server_tuning_status.json"
 
-puppet infrastructure tune --compare > $output_file
+# Run the puppet infrastructure tune command and capture output
+tuning_output=$(puppet infrastructure tune --compare)
+
+# Write to .out file
+echo "$tuning_output" | tee "$output_file"
+
+# Process the output for JSON format by splitting lines and creating JSON structure
+# Extract each setting and value if the output has a recognizable structure (e.g., key: value)
+json_content="{"
+while IFS= read -r line; do
+    if [[ "$line" =~ ^[[:alnum:]_]+: ]]; then
+        key=$(echo "$line" | awk -F':' '{print $1}' | xargs)
+        value=$(echo "$line" | awk -F':' '{print $2}' | xargs)
+        json_content+="\"$key\": \"$value\","
+    fi
+done <<< "$tuning_output"
+json_content="${json_content%,}}"  # Remove trailing comma and close JSON object
+
+# Write JSON content to the .json file
+echo "$json_content" > "$json_output_file"
+
+# Final confirmation messages
+echo ""
+echo "Output files are located at:"
+echo "Text output: ${output_file}"
+echo "JSON output: ${json_output_file}"
+echo ""
+
