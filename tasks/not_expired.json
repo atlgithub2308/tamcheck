@@ -11,6 +11,6 @@
     }
   },
   "implementations": [
-    { "name": "pe_server_node_count_not_expired.sh" }
+    { "name": "not_expired.sh" }
   ]
 }
