@@ -1,0 +1,17 @@
+{
+  "description": "Collect all .out and .json files from tamcheck_data and create a tar.gz archive with a date suffix.",
+  "parameters": {
+    "output_dir": {
+      "type": "Optional[String]",
+      "description": "The root output directory. PT_output_dir environment variable will be used. Defaults to /var/tmp if not set."
+    }
+  },
+  "implementations": [
+    {
+      "name": "data_collect.py",
+      "requirements": ["puppet-agent"],
+      "input_method": "environment",
+      "description": "Python implementation that archives .out and .json files into a tar.gz. Errors are printed to stdout/stderr."
+    }
+  ]
+}
