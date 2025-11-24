@@ -6,11 +6,8 @@ import tarfile
 import datetime
 
 def main():
-    # Get output directory from environment
-    pt_output_dir = os.environ.get("PT_output_dir")
-    if not pt_output_dir:
-        print("PT_output_dir is not set, terminating task.", file=sys.stderr)
-        sys.exit(1)
+    # Get output directory from environment, default to /var/tmp if not set
+    pt_output_dir = os.environ.get("PT_output_dir", "/var/tmp")
 
     tamcheck_dir = os.path.join(pt_output_dir, "tamcheck_data")
     if not os.path.isdir(tamcheck_dir):

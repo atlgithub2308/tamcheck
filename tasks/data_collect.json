@@ -1,9 +1,9 @@
 {
-  "description": "Collect all .out and .json files from tamcheck_data and create a tar.gz archive with a date suffix.",
+  "description": "1Collect all .out and .json files from tamcheck_data and create a tar.gz archive with a date suffix.",
   "parameters": {
     "output_dir": {
       "type": "Optional[String]",
-      "description": "The root output directory. PT_output_dir environment variable will be used. Defaults to /var/tmp if not set."
+      "description": "1The root output directory. Defaults to /var/tmp if PT_output_dir is not set."
     }
   },
   "implementations": [
@@ -15,3 +15,4 @@
     }
   ]
 }
+
