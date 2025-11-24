@@ -9,7 +9,7 @@
   "implementations": [
     {
       "name": "pe_server_node_count_not_expired.py",
-      "requirements": ["python3", "puppet-agent"],
+      "requirements": ["python3"],
       "input_method": "environment",
       "description": "Python implementation that writes both text and JSON output. Errors are printed to stdout/stderr."
     }
