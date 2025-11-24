@@ -7,10 +7,10 @@ import sys
 import traceback
 
 def main():
-    # Get output_dir from environment, default to /var/tmp if not provided
+    # 1Get output_dir from environment, default to /var/tmp
     output_dir = os.environ.get("PT_output_dir", "/var/tmp")
 
-    # Ensure the output directory exists
+    # Ensure output_dir exists
     if not os.path.isdir(output_dir):
         try:
             os.makedirs(output_dir, exist_ok=True)
@@ -25,11 +25,6 @@ def main():
     # Define output files
     output_file = os.path.join(tamcheck_dir, "pe_server_node_count_not_expired.out")
     json_output_file = os.path.join(tamcheck_dir, "pe_server_node_count_not_expired.json")
-
-    # Ensure Puppet commands in PATH (if needed)
-    puppet_bin = "/opt/puppetlabs/bin"
-    if puppet_bin not in os.environ.get("PATH", ""):
-        os.environ["PATH"] = f"{puppet_bin}:{os.environ['PATH']}"
 
     # Start logging
     with open(output_file, "w") as f:

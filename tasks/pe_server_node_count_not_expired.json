@@ -1,17 +1,18 @@
 {
-  "description": "Get the count of Puppet Enterprise server nodes that are not expired.",
+  "description": "1Get the count of Puppet Enterprise server nodes that are not expired.",
   "parameters": {
     "output_dir": {
       "type": "Optional[String]",
-      "description": "Directory to store tamcheck_data output. Defaults to /var/tmp if not set."
+      "description": "1Directory to store tamcheck_data output. Defaults to /var/tmp if not set."
     }
   },
   "implementations": [
     {
       "name": "pe_server_node_count_not_expired.py",
-      "requirements": ["python3"],
+      "requirements": ["puppet-agent"],
       "input_method": "environment",
       "description": "Python implementation that writes both text and JSON output. Errors are printed to stdout/stderr."
     }
   ]
 }
+
